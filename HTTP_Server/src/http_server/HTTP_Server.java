@@ -105,7 +105,6 @@ public class HTTP_Server {
                         SocketChannel client = server.accept();
                         client.configureBlocking(false);
                         client.register(selector, SelectionKey.OP_READ);
-                        System.out.println("A new client has been accepted.");
                     }
                     if(key.isReadable() && key.isValid()){
                         
@@ -120,19 +119,21 @@ public class HTTP_Server {
                         if (client.read(buffer) >= 0) {
                             /* something to be read; if it is a request, create a GET_Request and
                              * allocate the client to the event; the request is later processed 
-                             * by the handler and a response generated. The client is allocated
-                             * to the response and the response can be sent */
-                            
-                            System.out.println("Incoming data from client: ");
-                            
+                             * by the handler and a response generated
+                             */
+                                                        
                             buffer.flip();
                             Charset charset=Charset.forName("ISO-8859-1");
                             CharsetDecoder decoder = charset.newDecoder();
-                            CharBuffer charBuffer = decoder.decode(buffer);
-                            System.out.println(charBuffer.toString());
+                            String incomingRequest = decoder.decode(buffer).toString();
+                            
+                            /* need to check if the incoming charBuffer is a valid GET request
+                             * something like  ---> checkRequest(incomingRequest) 
+                             * if it is a valid request, create an event with type set to "GET_REQUEST" 
+                             */
                             
                             try {
-                                Event event = new Event( Event.type.GET_REQUEST, client, charBuffer.toString());
+                                Event event = new Event( Event.type.GET_REQUEST, client, incomingRequest);
                                 EventFIFO.add(event);
                             }
                             catch(NullPointerException e){
