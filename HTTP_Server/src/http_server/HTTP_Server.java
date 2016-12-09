@@ -8,6 +8,7 @@ import java.io.*;
 import java.nio.*;
 import java.nio.channels.*;
 import java.nio.charset.*;
+import java.lang.*;
 
 
 public class HTTP_Server {
@@ -176,5 +177,26 @@ public class HTTP_Server {
     private static void clean(){
         
     };
+    
+    
+    private static Boolean checkRequest(String request){
+        
+        String cmd, protocol;
+        
+        cmd = request.substring(0, request.indexOf(' '));
+        
+        if (cmd.compareTo("GET") != 0){
+            return false;            
+        }
+        
+        protocol = request.substring(request.lastIndexOf(' ')+1);
+        
+        if (protocol.compareTo("HTTP/1.1") != 0){
+            return false;            
+        }
+        
+        return true;
+        
+    }
     
 }
