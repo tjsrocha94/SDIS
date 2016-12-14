@@ -1,5 +1,3 @@
-//Olá
-
 package http_server;
 
 import java.nio.channels.*;
@@ -39,7 +37,14 @@ public class Event {
         this.timeOfCreation = timeOfCreation;
     }
 
-
     
+    public int execGetRequest(){
+        
+        String page, pathName;
+        
+        page = data.substring(data.indexOf(' '), data.lastIndexOf(' '));
+        
+        pathName = "C:\Users\"
+    }
     
 }
