@@ -132,13 +132,17 @@ public class HTTP_Server {
                             CharBuffer charBuffer = decoder.decode(buffer);
                             System.out.println(charBuffer.toString());
                             
-                            try {
-                                Event event = new Event( Event.type.GET_REQUEST, client, charBuffer.toString());
-                                EventFIFO.add(event);
+                            if ( checkRequest(charBuffer.toString()) ){
+                            
+                                try {
+                                    Event event = new Event( Event.type.GET_REQUEST, client, charBuffer.toString());
+                                    EventFIFO.add(event);
+                                }
+                                catch(NullPointerException e){
+                                    System.out.println("NullPointerException thrown while adding event to LinkedList: " + e);
+                                }
                             }
-                            catch(NullPointerException e){
-                                System.out.println("NullPointerException thrown while adding event to LinkedList: " + e);
-                            }                            
+                            else System.out.println("Invalid request");
                                                         
                         }
                         else {
