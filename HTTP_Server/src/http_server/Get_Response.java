@@ -8,7 +8,10 @@ package http_server;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.nio.channels.SocketChannel;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -23,8 +26,6 @@ public class Get_Response {
     private SocketChannel origin;
     private Date timeOfCreation;
     private String protocol;
-    private File htmlpage;
-    private FileReader pageReader;
     private int statusCode = 0;
     
     
@@ -34,18 +35,8 @@ public class Get_Response {
         this.origin = origin;
         timeOfCreation = new Date();
         this.statusCode = statusCode;
-        
         protocol = _protocol;
-        
-        this.htmlpage = _htmlpage;
-        
-        try {
-            this.pageReader = new FileReader(htmlpage);
-        } 
-        catch (FileNotFoundException ex) {
-            Logger.getLogger(Get_Response.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    }
+    }    
     
     public SocketChannel getOrigin() {
         return origin;
@@ -63,12 +54,6 @@ public class Get_Response {
         this.timeOfCreation = timeOfCreation;
     }
     
-    public FileReader getPageReader(){
-        
-        return pageReader;
-        
-    }
-    
     public int getStatusCode(){
         
         return statusCode;
@@ -78,6 +63,63 @@ public class Get_Response {
     public long getID(){
         
         return ID;
+        
+    }
+    
+    public String buildHeader(File htmlpage){
+        
+        String statusMessage;
+        
+        SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
+        
+        if(statusCode == 200){
+            
+            try {
+                
+                return (protocol + ' ' + "OK" + '\n'                            +
+                        "Date: " + timeOfCreation.toString()                    +
+                        "Server: " + InetAddress.getLocalHost().getHostName()   +
+                        "Last-Modified: " + sdf.format(htmlpage.lastModified()) +
+                        "Accept-Ranges: bytes"                                  +
+                        "Content-Length: " + htmlpage.length()                  +
+                        "Connection: Close"                                     +
+                        "Content-Type: text/html; charset=UTF-8");
+                
+            } catch (UnknownHostException ex) {
+                Logger.getLogger(Get_Response.class.getName()).log(Level.SEVERE, null, ex);
+                
+                return (protocol + ' ' + "OK" + '\n'                            +
+                        "Date: " + timeOfCreation.toString()                    +
+                        "Server: "                                              +
+                        "Last-Modified: " + sdf.format(htmlpage.lastModified()) +
+                        "Accept-Ranges: bytes"                                  +
+                        "Content-Length: " + htmlpage.length()                  +
+                        "Connection: Close"                                     +
+                        "Content-Type: text/html; charset=UTF-8");
+            }
+        }
+        else{
+            try {
+                
+                return (protocol + ' ' + "Not found" + '\n'                     +
+                        "Date: " + timeOfCreation.toString()                    +
+                        "Server: " + InetAddress.getLocalHost().getHostName()   +
+                        "Accept-Ranges: bytes"                                  +
+                        "Connection: Close");
+                
+            } catch (UnknownHostException ex) {
+                Logger.getLogger(Get_Response.class.getName()).log(Level.SEVERE, null, ex);
+                
+                return (protocol + ' ' + "Not found" + '\n'                     +
+                        "Date: " + timeOfCreation.toString()                    +
+                        "Server: "                                              +
+                        "Accept-Ranges: bytes"                                  +
+                        "Connection: Close");
+            }
+        }
+        
+        
+        
         
     }
 }

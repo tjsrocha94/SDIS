@@ -24,10 +24,13 @@ import java.util.logging.Logger;
  */
 public class Get_Request{
     
+    public enum status{UNREAD, WAITING, CONCLUDED};
+    
+    private status state;
     private long ID;
     private SocketChannel origin;
     private Date timeOfCreation;
-    private Path path;
+    private Path path = null;
     private String protocol;
     private int statusCode = 0;
     
@@ -40,6 +43,7 @@ public class Get_Request{
         this.ID = ID;                   //Request identifier
         this.origin = origin;           //Origin (socket) of the request
         timeOfCreation = new Date();    //Time at which the request was created
+        state = status.UNREAD;
                 
         //Request's text processing
         data = data.substring(data.indexOf(' ')+1, data.indexOf('\r'));
@@ -56,7 +60,7 @@ public class Get_Request{
         catch (InvalidPathException e){
             
             System.out.println("Page could not be found.\n" + e);
-            statusCode = 400;  //Client Error
+            statusCode = 404;  //Client Error - Page not found
             
         }
         
@@ -78,14 +82,9 @@ public class Get_Request{
         this.timeOfCreation = timeOfCreation;
     }
     
-    public Get_Response createResponse(){
+    public Path getPath(){
         
-        File htmlpage = new File(path.toString());
-        
-        return new Get_Response(ID, origin, protocol, htmlpage, statusCode);
-            
-        
-        
+        return path;
     }
     
 }
