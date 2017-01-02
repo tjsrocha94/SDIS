@@ -14,7 +14,8 @@ public class HTTP_Server {
     
     private static ServerSocketChannel          server;
     private static Selector                     selector;
-    private static LinkedList<Get_Request>      EventFIFO;
+    private static LinkedList<Get_Request>      Get_Request_FIFO;
+    private static LinkedList<Get_Response>     Get_Response_FIFO;
     private static long                         IDCounter = 0;
 
     
@@ -35,7 +36,8 @@ public class HTTP_Server {
             selector = Selector.open();
             server.register(selector, SelectionKey.OP_ACCEPT);
             
-            EventFIFO = new LinkedList();
+            Get_Request_FIFO = new LinkedList();
+            Get_Response_FIFO = new LinkedList();
             
         }
         catch(IOException e){
@@ -127,7 +129,7 @@ public class HTTP_Server {
                                 try {
                                     Get_Request eventRequest = new Get_Request(client, charBuffer.toString(), IDCounter);
                                     IDCounter = IDCounter + 1;
-                                    EventFIFO.add(eventRequest);
+                                    Get_Request_FIFO.add(eventRequest);
                                 }
                                 catch(NullPointerException e){
                                     System.out.println("NullPointerException thrown while adding event to LinkedList: " + e);
