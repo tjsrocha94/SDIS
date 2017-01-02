@@ -18,10 +18,10 @@ public class Get_Response {
  //   private SocketChannel origin;
     private Date timeOfCreation;
     private String protocol;
-    private byte[] page;
+    private String page;
     
     
-    public Get_Response(int ID,/* SocketChannel _origin, */String _protocol, byte[] page){
+    public Get_Response(int ID,/* SocketChannel _origin, */String _protocol, String page){
         
         this.ID = ID;
      //   this.origin = origin;

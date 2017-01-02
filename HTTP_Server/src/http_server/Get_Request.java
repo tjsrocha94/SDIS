@@ -5,6 +5,9 @@
  */
 package http_server;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
 import java.nio.channels.SocketChannel;
 import java.nio.file.Files;
@@ -12,6 +15,8 @@ import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Date;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -67,23 +72,22 @@ public class Get_Request{
     
     public Get_Response createResponse(){
         
-        byte[] page;
-        
+        String page;
+        File htmlpage = new File(path.toString());
         
         try{
-             
-            page = Files.readAllBytes(path.toAbsolutePath());
+            FileReader reader = new FileReader(htmlpage);
+            page = reader.toString();
+            
+            System.out.print(page);
             
             return new Get_Response(ID,/* origin, */protocol, page);
             
-
+        } catch (FileNotFoundException ex) {
+            Logger.getLogger(Get_Request.class.getName()).log(Level.SEVERE, null, ex);
         }
-        catch(IOException e){
-            
-            System.out.println("Erro de leitura do ficheiro\n" + e);
-            return null;
-            
-        }
+        
+        
     }
     
 }
