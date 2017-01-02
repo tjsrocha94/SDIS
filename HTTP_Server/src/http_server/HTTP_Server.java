@@ -16,6 +16,7 @@ public class HTTP_Server {
     private static ServerSocketChannel          server;
     private static Selector                     selector;
     private static LinkedList                   EventFIFO;
+    private static int IDCounter = 0;
 
     
     
@@ -23,6 +24,7 @@ public class HTTP_Server {
         
         System.out.println("HTTP Event-based Server by Tiago Rocha, Tiago Oliveira and Vitor Lopes\nFEUP/DEEC/MIEEC/SDIS 2016-17");
 
+        
         // SERVER INITIALIZATION :
         try{
             /* create a new socket for the server and set it as non-blocking socket
@@ -135,8 +137,9 @@ public class HTTP_Server {
                             if ( checkRequest(charBuffer.toString()) ){
                             
                                 try {
-                                    Event event = new Event( Event.type.GET_REQUEST, client, charBuffer.toString());
-                                    EventFIFO.add(event);
+                                    Get_Request eventRequest = new Get_Request(charBuffer.toString(), IDCounter);
+                                    IDCounter = IDCounter + 1;
+                                    EventFIFO.add(eventRequest);
                                 }
                                 catch(NullPointerException e){
                                     System.out.println("NullPointerException thrown while adding event to LinkedList: " + e);
