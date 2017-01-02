@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package http_server;
+package httpMultiThreadedServer;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -87,4 +87,11 @@ public class Get_Request{
         return path;
     }
     
+    public Get_Response createResponse(){
+        
+        File htmlpage = new File(path.toString());
+        
+        return new Get_Response(ID, origin, protocol, htmlpage, statusCode);
+        
+    }
 }

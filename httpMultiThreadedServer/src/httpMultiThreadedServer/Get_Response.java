@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package http_server;
+package httpMultiThreadedServer;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -27,6 +27,8 @@ public class Get_Response {
     private Date timeOfCreation;
     private String protocol;
     private int statusCode = 0;
+    private File htmlPage;
+    private FileReader pageReader;
     
     
     public Get_Response(long ID, SocketChannel _origin, String _protocol, File _htmlpage, int statusCode){
@@ -36,6 +38,15 @@ public class Get_Response {
         timeOfCreation = new Date();
         this.statusCode = statusCode;
         protocol = _protocol;
+        this.htmlPage = _htmlpage;
+        
+        try {
+            pageReader = new FileReader(htmlPage);
+            
+        } catch (FileNotFoundException ex) {
+            Logger.getLogger(Get_Response.class.getName()).log(Level.SEVERE, null, ex);
+            statusCode = 404;
+        }
     }    
     
     public SocketChannel getOrigin() {
@@ -63,6 +74,12 @@ public class Get_Response {
     public long getID(){
         
         return ID;
+        
+    }
+    
+    public FileReader getPageReader(){
+        
+        return pageReader;
         
     }
     
