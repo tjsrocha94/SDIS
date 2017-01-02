@@ -15,14 +15,11 @@ public class HTTP_Server {
     private static ServerSocketChannel          server;
     private static Selector                     selector;
     private static LinkedList<Get_Request>      EventFIFO;
-    private static long                          IDCounter = 0;
+    private static long                         IDCounter = 0;
 
     
     
     public static void main(String[] args) {
-        
-        System.out.println("HTTP Event-based Server by Tiago Rocha, Tiago Oliveira and Vitor Lopes\nFEUP/DEEC/MIEEC/SDIS 2016-17");
-
         
         // SERVER INITIALIZATION :
         try{
@@ -45,9 +42,10 @@ public class HTTP_Server {
             System.out.println("IOException thrown at ServerSocket creation: " + e);
         }
         
+        System.out.println("HTTP Event-based Server by Tiago Rocha, Tiago Oliveira and Vitor Lopes\nFEUP/DEEC/MIEEC/SDIS 2016-17");
         System.out.println("Server has been initialized, listening on port 80.");
         
-        
+        // SERVER RUNNING:
         while(true){
            
             /* LISTENER */
@@ -69,19 +67,10 @@ public class HTTP_Server {
             * sets the event status as finished 
             */ 
            handle();
-           
-           /* CLEANER*/
-           /* After the handler deals with the events, the cleaner comes and sweeps the finished events from the list 
-            */
-           clean();
-           
-           
-           
-        }  /* end of while loop */
-        
-        
-        
-    }; /* end of main */
+    
+        } 
+
+    }; 
 
     private static void listen() {
         
@@ -179,11 +168,6 @@ public class HTTP_Server {
          */
         
     };
-    
-    private static void clean(){
-        
-    };
-    
     
     private static Boolean checkRequest(String request){
         
