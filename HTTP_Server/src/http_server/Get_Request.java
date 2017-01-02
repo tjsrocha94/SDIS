@@ -24,44 +24,52 @@ import java.util.logging.Logger;
  */
 public class Get_Request{
     
-    private int ID;
-    //private SocketChannel origin;
+    private long ID;
+    private SocketChannel origin;
     private Date timeOfCreation;
     private Path path;
     private String protocol;
-    private byte[] page;
+    private int statusCode = 0;
+    
 
     
     
-    public Get_Request(/*SocketChannel origin, */String data, int ID){
+    public Get_Request(SocketChannel origin, String data, long ID){
         
-        this.ID = ID;
-        //this.origin = origin;
-        timeOfCreation = new Date();
+        
+        this.ID = ID;                   //Request identifier
+        this.origin = origin;           //Origin (socket) of the request
+        timeOfCreation = new Date();    //Time at which the request was created
                 
-        protocol = data.substring(data.lastIndexOf(' '));
+        //Request's text processing
+        data = data.substring(data.indexOf(' ')+1, data.indexOf('\r'));
+        protocol = data.substring(data.indexOf(' ')+1);
         
+        
+        //Get html page location on the server
         try{
-            path = Paths.get(System.getProperty("user.dir"),Paths.get(data.substring(data.indexOf(' ')+1, data.lastIndexOf(' '))).toString());
+            path = Paths.get(System.getProperty("user.dir"),Paths.get(data.substring(0, data.indexOf(' '))).toString());
             System.out.println("Path: " + path.toString());
+            statusCode = 200;  //Success
             
         }
         catch (InvalidPathException e){
             
-            System.out.println("Pedido inválido\n" + e);
+            System.out.println("Page could not be found.\n" + e);
+            statusCode = 400;  //Client Error
             
         }
         
     }
     
- /*   public SocketChannel getOrigin() {
+    public SocketChannel getOrigin() {
         return origin;
     }
 
     public void setOrigin(SocketChannel origin) {
         this.origin = origin;
     }
-*/    
+    
     public Date getTimeOfCreation() {
         return timeOfCreation;
     }
@@ -72,10 +80,9 @@ public class Get_Request{
     
     public Get_Response createResponse(){
         
-        String page;
         File htmlpage = new File(path.toString());
         
-        return new Get_Response(ID,/* origin, */protocol, htmlpage);
+        return new Get_Response(ID, origin, protocol, htmlpage, statusCode);
             
         
         
