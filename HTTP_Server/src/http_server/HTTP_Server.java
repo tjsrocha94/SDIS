@@ -15,8 +15,8 @@ public class HTTP_Server {
     
     private static ServerSocketChannel          server;
     private static Selector                     selector;
-    private static LinkedList                   EventFIFO;
-    private static int IDCounter = 0;
+    private static LinkedList<Get_Request>      EventFIFO;
+    private static int                          IDCounter = 0;
 
     
     
@@ -193,12 +193,14 @@ public class HTTP_Server {
         cmd = request.substring(0, request.indexOf(' '));
         
         if (cmd.compareTo("GET") != 0){
+            System.out.println("On GET I got: " + cmd);
             return false;            
         }
         
         protocol = request.substring(request.lastIndexOf(' ')+1);
         
         if (protocol.compareTo("HTTP/1.1") != 0){
+            System.out.println("On protocol I got: " + protocol);
             return false;            
         }
         
