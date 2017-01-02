@@ -137,7 +137,7 @@ public class HTTP_Server {
                             if ( checkRequest(charBuffer.toString()) ){
                             
                                 try {
-                                    Get_Request eventRequest = new Get_Request(charBuffer.toString(), IDCounter);
+                                    Get_Request eventRequest = new Get_Request(client, charBuffer.toString(), IDCounter);
                                     IDCounter = IDCounter + 1;
                                     EventFIFO.add(eventRequest);
                                 }
@@ -199,7 +199,7 @@ public class HTTP_Server {
         
         request = request.substring(request.indexOf(' ')+1);
         
-        protocol = request.substring(request.indexOf(' ')+1);
+        protocol = request.substring(request.indexOf(' ')+1, request.indexOf('\r'));
         
         if (protocol.compareTo("HTTP/1.1") != 0){
             System.out.println("On protocol I got: " + protocol);
