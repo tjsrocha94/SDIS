@@ -14,9 +14,9 @@ import java.lang.*;
 public class HTTP_Server {
     
     private static ServerSocketChannel          server;
-    private static Selector                     selector;
-    private static LinkedList                   EventFIFO;
-    private static int IDCounter = 0;
+    private static Selector                   selector;
+    private static LinkedList                EventFIFO;
+    private static long                  IDCounter = 0;
 
     
     
@@ -196,7 +196,9 @@ public class HTTP_Server {
             return false;            
         }
         
-        protocol = request.substring(request.lastIndexOf(' ')+1);
+        request = request.substring(request.indexOf(' ')+1);
+        
+        protocol = request.substring(request.indexOf(' ')+1);
         
         if (protocol.compareTo("HTTP/1.1") != 0){
             return false;            
