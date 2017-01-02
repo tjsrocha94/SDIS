@@ -75,17 +75,8 @@ public class Get_Request{
         String page;
         File htmlpage = new File(path.toString());
         
-        try{
-            FileReader reader = new FileReader(htmlpage);
-            page = reader.toString();
+        return new Get_Response(ID,/* origin, */protocol, htmlpage);
             
-            System.out.print(page);
-            
-            return new Get_Response(ID,/* origin, */protocol, page);
-            
-        } catch (FileNotFoundException ex) {
-            Logger.getLogger(Get_Request.class.getName()).log(Level.SEVERE, null, ex);
-        }
         
         
     }
