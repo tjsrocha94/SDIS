@@ -5,6 +5,7 @@
  */
 package http_server;
 
+import java.io.FileReader;
 import java.nio.channels.SocketChannel;
 import java.util.Date;
 
@@ -18,10 +19,10 @@ public class Get_Response {
  //   private SocketChannel origin;
     private Date timeOfCreation;
     private String protocol;
-    private String page;
+    public FileReader pageReader;
     
     
-    public Get_Response(int ID,/* SocketChannel _origin, */String _protocol, String page){
+    public Get_Response(int ID,/* SocketChannel _origin, */String _protocol, FileReader reader){
         
         this.ID = ID;
      //   this.origin = origin;
@@ -29,11 +30,6 @@ public class Get_Response {
         
         protocol = _protocol;
         
-        this.page = page;
-    }
-    
-    public void printPage(){
-        
-        System.out.print(page);
+        this.pageReader = reader;
     }
 }
