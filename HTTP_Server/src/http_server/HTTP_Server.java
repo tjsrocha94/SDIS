@@ -3,11 +3,12 @@
 package http_server;
 
 import java.util.*;
-import java.util.LinkedList;
 import java.io.*;
 import java.nio.*;
 import java.nio.channels.*;
 import java.nio.charset.*;
+import java.nio.file.*;
+import java.util.concurrent.Future;
 
 
 public class HTTP_Server {
@@ -42,6 +43,7 @@ public class HTTP_Server {
         }
         catch(IOException e){
             System.out.println("IOException thrown at ServerSocket creation: " + e);
+            System.exit(-1);
         }
         
         System.out.println("HTTP Event-based Server by Tiago Rocha, Tiago Oliveira and Vitor Lopes\nFEUP/DEEC/MIEEC/SDIS 2016-17");
@@ -163,11 +165,81 @@ public class HTTP_Server {
     
     private static void handle() {
         
-        /* Go through the event list; for each event: 
-         * determine the type of event to handle; then proceed to work on it without blocking; if it needs to read a file, make the call, 
+        /* Go through the event list; for each event:
+         * determine the type of event to handle; then proceed to work on it without blocking; if it needs to read a file, make the call,
          * set the status of the event to WORKING and go to the next event; the next time it deals with the event, check if the file is ready
          * and create a response -- might not be possible, JAVA doesn't have non-blocking file reading/writing
          */
+        int index = 0;
+        
+        for (Get_Request request : Get_Request_FIFO) {
+            // check the status of the request - if:
+            // > request is new - get the path and create a filechannel;
+            //                    store the filechannel on the request object; 
+            //                    proceed with a read and store the future on the request, along with the byteBuffer used
+            // > request is waiting for file to be read - check if future.isDone(); if future isDone()
+            //                                            if yes, create a Get_Response with the ByteBuffer
+            //                                            and mark the Get_Request as concluded
+            // > request is done, a response was already created for this request - wipe the request from the list
+            
+            switch (request.getState()) {
+                case UNREAD: 
+                    
+                    if (request.getStatusCode() == 200) {
+                        try{
+                            System.out.println("Opening the html file...");
+                            request.fileChannel = AsynchronousFileChannel.open( request.getPath() , StandardOpenOption.READ );
+                            request.operation = request.fileChannel.read( request.buffer , 0 );
+                            request.setState( Get_Request.status.WAITING );
+                        }
+                        catch(UnsupportedOperationException e) {
+                            // the system does not support asynchronous file channels, just end the program - our server is not prepared for this
+                            System.out.println("Could not open an asynchronous file channel to READ the file on PATH " + request.getPath().toString() + ". Exception thrown: " + e);
+                            System.exit(-1);
+                        }
+                        catch(IOException e) {
+                            System.out.println("IOException while reading the file on PATH " + request.getPath().toString() + ": " + e);
+                        } 
+                    }
+                    else {
+                        // file does not exist - statusCode is not 200 (!)
+                        System.out.println("Could not find the file; no reading to be made.");
+                        request.buffer = null;
+                        request.fileChannel = null;
+                        request.operation = null;
+                        request.setState(Get_Request.status.FAIL);
+                    }
+                    
+                    break; 
+                    
+                case WAITING:
+                    if (  request.operation.isDone() ) {
+                        System.out.println("File was read. Creating a response...");
+                        // create Get_Response with request.buffer (the data from the html file)
+                        request.setState(Get_Request.status.CONCLUDED);
+                    }
+                    
+                    break;
+                    
+                case CONCLUDED:
+                    System.out.println("This request has been processed. Removing from the list...");
+                    Get_Request_FIFO.remove( index ); 
+                    break;
+                    
+                case FAIL: 
+                    System.out.println("This request has failed somehow: we cannot process it!");
+                    break;
+            }
+            
+            index++;
+        }
+        
+        // now iterate the GET_Response list
+        for(Get_Response response : Get_Response_FIFO) {
+            // send to this socket -> response.getOrigin();
+            // the ByteBuffer with the data response.getDataToSend()
+            
+        }
         
     };
     
