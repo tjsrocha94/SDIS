@@ -5,16 +5,16 @@
  */
 package http_server;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
+import java.nio.ByteBuffer;
+import java.nio.channels.AsynchronousFileChannel;
 import java.nio.channels.SocketChannel;
 import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Date;
+import java.util.concurrent.Future;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -24,15 +24,19 @@ import java.util.logging.Logger;
  */
 public class Get_Request{
     
-    public enum status{UNREAD, WAITING, CONCLUDED};
+    public enum status{UNREAD, WAITING, CONCLUDED, FAIL};
     
-    private status state;
-    private long ID;
-    private SocketChannel origin;
-    private Date timeOfCreation;
-    private Path path = null;
-    private String protocol;
-    private int statusCode = 0;
+    private status  state;
+    private long    ID;
+    private Date    timeOfCreation;
+    private Path    path = null;
+    private String  protocol;
+    private int     statusCode = 0;
+    
+    private SocketChannel              origin;
+    public AsynchronousFileChannel     fileChannel;
+    public ByteBuffer                  buffer;
+    public Future<Integer>             operation;
     
 
     
@@ -42,8 +46,9 @@ public class Get_Request{
         
         this.ID = ID;                   //Request identifier
         this.origin = origin;           //Origin (socket) of the request
-        timeOfCreation = new Date();    //Time at which the request was created
-        state = status.UNREAD;
+        this.timeOfCreation = new Date();    //Time at which the request was created
+        this.state = status.UNREAD;
+        this.buffer = ByteBuffer.allocate(1024);
                 
         //Request's text processing
         data = data.substring(data.indexOf(' ')+1, data.indexOf('\r'));
@@ -53,7 +58,7 @@ public class Get_Request{
         //Get html page location on the server
         try{
             path = Paths.get(System.getProperty("user.dir"),Paths.get(data.substring(0, data.indexOf(' '))).toString());
-            System.out.println("Path: " + path.toString());
+            System.out.println("Created a new request for the html file on path: " + path.toString());
             statusCode = 200;  //Success
             
         }
@@ -66,6 +71,8 @@ public class Get_Request{
         
     }
     
+    
+    // List of setters and getters:
     public SocketChannel getOrigin() {
         return origin;
     }
@@ -83,8 +90,29 @@ public class Get_Request{
     }
     
     public Path getPath(){
-        
         return path;
     }
+    
+    public status getState() {
+        return state;
+    }
+    
+    public void setState(status state) {
+        this.state = state;
+    }
+
+    public long getID() {
+        return ID;
+    }
+
+    public void setID(long ID) {
+        this.ID = ID;
+    }
+
+    public int getStatusCode() {
+        return statusCode;
+    }
+
+
     
 }
