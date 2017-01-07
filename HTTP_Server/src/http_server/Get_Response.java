@@ -5,16 +5,11 @@
  */
 package http_server;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
+import java.net.*;
+import java.nio.*;
 import java.nio.channels.SocketChannel;
-import java.text.SimpleDateFormat;
+import java.nio.charset.*;
 import java.util.Date;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  *
@@ -28,14 +23,16 @@ public class Get_Response {
     private String protocol;
     private int statusCode = 0;
     
+    private ByteBuffer dataToSend;
     
-    public Get_Response(long ID, SocketChannel _origin, String _protocol, File _htmlpage, int statusCode){
-        
+    public ByteBuffer toSend;
+    
+    
+    public Get_Response(long ID, SocketChannel _origin, int statusCode){
         this.ID = ID;
-        this.origin = origin;
+        this.origin = _origin;
         timeOfCreation = new Date();
         this.statusCode = statusCode;
-        protocol = _protocol;
     }    
     
     public SocketChannel getOrigin() {
@@ -55,45 +52,91 @@ public class Get_Response {
     }
     
     public int getStatusCode(){
-        
         return statusCode;
-        
     }
     
     public long getID(){
-        
         return ID;
-        
     }
     
-    public String buildHeader(File htmlpage){
+    public ByteBuffer getDataToSend() {
+        return dataToSend;
+    }
+
+    public void setDataToSend(ByteBuffer dataToSend) {
+        this.dataToSend = dataToSend;
+    }
+    
+    public void buildHeader() {
         
-        String statusMessage;
+
+
+        if(this.statusCode == 200) {
+            
+            String content = new String();
+            if (dataToSend.hasArray()) {
+                content = new String( dataToSend.array() , Charset.forName("UTF-8"));
+            }
         
-        SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
+            try {
+                String header = 
+                        "HTTP/1.1 200 OK" +
+                        "\nDate: " + timeOfCreation.toString() +
+                        "\nServer: " + InetAddress.getLocalHost().getHostName() +
+                        "\nLast-Modified: " +
+                        "\nAccept-Ranges: bytes" +
+                        "\nContent-Length: " + content.length() +
+                        "\nConnection: Close" +
+                        "\nContent-Type: text/html; charset=UTF-8\n" + 
+                        "\r\n" +
+                        content;
+                
+                System.out.println("\n" + header + "\n");
+                toSend = ByteBuffer.wrap( header.getBytes() );
+                
+                
+            }    
+                
+            catch(UnknownHostException e) {}
+        }
+        else {
+            try{
+                String header = 
+                        "HTTP/1.1 404 NOT FOUND" +
+                        "\nDate: " + timeOfCreation.toString() +
+                        "\nServer: " + InetAddress.getLocalHost().getHostName() +
+                        "\nConnection: Close";
+                
+                System.out.println("\n" + header + "\n");
+                toSend = ByteBuffer.wrap( header.getBytes() );
+            }
+            catch(UnknownHostException e) {}
+        }
         
+        
+        /*
         if(statusCode == 200){
             
             try {
                 
-                return (protocol + ' ' + "OK" + '\n'                            +
+                return ("GET" + ' ' + "OK" + '\n'                            +
                         "Date: " + timeOfCreation.toString()                    +
                         "Server: " + InetAddress.getLocalHost().getHostName()   +
-                        "Last-Modified: " + sdf.format(htmlpage.lastModified()) +
+                        "Last-Modified: "                                       +
                         "Accept-Ranges: bytes"                                  +
-                        "Content-Length: " + htmlpage.length()                  +
+                        "Content-Length: " + getDataToSend().capacity()              +
                         "Connection: Close"                                     +
                         "Content-Type: text/html; charset=UTF-8");
                 
             } catch (UnknownHostException ex) {
                 Logger.getLogger(Get_Response.class.getName()).log(Level.SEVERE, null, ex);
                 
-                return (protocol + ' ' + "OK" + '\n'                            +
+                return ("GET" + ' ' + "OK" + '\n'                            +
                         "Date: " + timeOfCreation.toString()                    +
                         "Server: "                                              +
-                        "Last-Modified: " + sdf.format(htmlpage.lastModified()) +
+                        "Last-Modified: "  +
                         "Accept-Ranges: bytes"                                  +
-                        "Content-Length: " + htmlpage.length()                  +
+                        "Content-Length: " + getDataToSend().capacity()              +
                         "Connection: Close"                                     +
                         "Content-Type: text/html; charset=UTF-8");
             }
@@ -101,7 +144,7 @@ public class Get_Response {
         else{
             try {
                 
-                return (protocol + ' ' + "Not found" + '\n'                     +
+                return ("GET" + ' ' + "Not found" + '\n'                     +
                         "Date: " + timeOfCreation.toString()                    +
                         "Server: " + InetAddress.getLocalHost().getHostName()   +
                         "Accept-Ranges: bytes"                                  +
@@ -110,7 +153,7 @@ public class Get_Response {
             } catch (UnknownHostException ex) {
                 Logger.getLogger(Get_Response.class.getName()).log(Level.SEVERE, null, ex);
                 
-                return (protocol + ' ' + "Not found" + '\n'                     +
+                return ("GET" + ' ' + "Not found" + '\n'                     +
                         "Date: " + timeOfCreation.toString()                    +
                         "Server: "                                              +
                         "Accept-Ranges: bytes"                                  +
@@ -119,6 +162,7 @@ public class Get_Response {
         }
         
         
+        */
         
         
     }

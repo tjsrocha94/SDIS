@@ -23,6 +23,7 @@ import java.util.logging.Logger;
  * @author Tiago
  */
 public class Get_Request{
+
     
     public enum status{UNREAD, WAITING, CONCLUDED, FAIL};
     
@@ -48,7 +49,6 @@ public class Get_Request{
         this.origin = origin;           //Origin (socket) of the request
         this.timeOfCreation = new Date();    //Time at which the request was created
         this.state = status.UNREAD;
-        this.buffer = ByteBuffer.allocate(1024);
                 
         //Request's text processing
         data = data.substring(data.indexOf(' ')+1, data.indexOf('\r'));
@@ -111,6 +111,10 @@ public class Get_Request{
 
     public int getStatusCode() {
         return statusCode;
+    }
+    
+    public void setStatusCode(int statusCode) {
+        this.statusCode = statusCode;
     }
 
 

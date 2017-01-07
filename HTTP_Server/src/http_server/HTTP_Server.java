@@ -8,7 +8,6 @@ import java.nio.*;
 import java.nio.channels.*;
 import java.nio.charset.*;
 import java.nio.file.*;
-import java.util.concurrent.Future;
 
 
 public class HTTP_Server {
@@ -162,16 +161,9 @@ public class HTTP_Server {
         
     };
 
-    
     private static void handle() {
         
-        /* Go through the event list; for each event:
-         * determine the type of event to handle; then proceed to work on it without blocking; if it needs to read a file, make the call,
-         * set the status of the event to WORKING and go to the next event; the next time it deals with the event, check if the file is ready
-         * and create a response -- might not be possible, JAVA doesn't have non-blocking file reading/writing
-         */
         int index = 0;
-        
         for (Get_Request request : Get_Request_FIFO) {
             // check the status of the request - if:
             // > request is new - get the path and create a filechannel;
@@ -189,20 +181,22 @@ public class HTTP_Server {
                         try{
                             System.out.println("Opening the html file...");
                             request.fileChannel = AsynchronousFileChannel.open( request.getPath() , StandardOpenOption.READ );
+                            request.buffer = ByteBuffer.allocate( (int)request.fileChannel.size() );
                             request.operation = request.fileChannel.read( request.buffer , 0 );
                             request.setState( Get_Request.status.WAITING );
                         }
                         catch(UnsupportedOperationException e) {
                             // the system does not support asynchronous file channels, just end the program - our server is not prepared for this
-                            System.out.println("Could not open an asynchronous file channel to READ the file on PATH " + request.getPath().toString() + ". Exception thrown: " + e);
+                            System.out.println("This system does not support asynchronous file access.");
                             System.exit(-1);
                         }
                         catch(IOException e) {
                             System.out.println("IOException while reading the file on PATH " + request.getPath().toString() + ": " + e);
+                            request.setState(Get_Request.status.FAIL);
                         } 
                     }
                     else {
-                        // file does not exist - statusCode is not 200 (!)
+                        // the request wasn't successfull - won't open anything
                         System.out.println("Could not find the file; no reading to be made.");
                         request.buffer = null;
                         request.fileChannel = null;
@@ -213,32 +207,49 @@ public class HTTP_Server {
                     break; 
                     
                 case WAITING:
-                    if (  request.operation.isDone() ) {
+                    if (  request.operation.isDone() ) {                     
                         System.out.println("File was read. Creating a response...");
-                        // create Get_Response with request.buffer (the data from the html file)
+                        Get_Response response = new Get_Response(request.getID(), request.getOrigin(), request.getStatusCode());
+                        response.setDataToSend( request.buffer );
+                        response.buildHeader();
+                        Get_Response_FIFO.add(response);
                         request.setState(Get_Request.status.CONCLUDED);
                     }
                     
                     break;
                     
                 case CONCLUDED:
-                    System.out.println("This request has been processed. Removing from the list...");
+                    System.out.println("This request has been processed and response has been created. Removing from the list...");
                     Get_Request_FIFO.remove( index ); 
                     break;
                     
                 case FAIL: 
-                    System.out.println("This request has failed somehow: we cannot process it!");
+                    System.out.println("This request has failed somehow!");
+                    request.setStatusCode(404);
+                    Get_Response response = new Get_Response(request.getID(), request.getOrigin(), request.getStatusCode());
+                    response.buildHeader();
+                    Get_Response_FIFO.add(response);
+                    request.setState(Get_Request.status.CONCLUDED);
+                    
                     break;
             }
             
             index++;
         }
         
+        index = 0;
         // now iterate the GET_Response list
         for(Get_Response response : Get_Response_FIFO) {
-            // send to this socket -> response.getOrigin();
-            // the ByteBuffer with the data response.getDataToSend()
             
+            try {
+                response.getOrigin().write( response.toSend );
+                Get_Response_FIFO.remove( index );
+            }
+            catch( IOException e){
+                System.out.println("Failed to send a response.");
+            }
+            
+            index++;
         }
         
     };
@@ -250,16 +261,13 @@ public class HTTP_Server {
         cmd = request.substring(0, request.indexOf(' '));
         
         if (cmd.compareTo("GET") != 0){
-            System.out.println("On GET I got: " + cmd);
             return false;            
         }
         
         request = request.substring(request.indexOf(' ')+1);
-        
         protocol = request.substring(request.indexOf(' ')+1, request.indexOf('\r'));
         
         if (protocol.compareTo("HTTP/1.1") != 0){
-            System.out.println("On protocol I got: " + protocol);
             return false;            
         }
         
