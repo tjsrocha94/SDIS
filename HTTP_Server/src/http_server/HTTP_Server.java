@@ -31,7 +31,7 @@ public class HTTP_Server {
              */
             server = ServerSocketChannel.open();
             server.configureBlocking(false);
-            server.socket().bind(new java.net.InetSocketAddress("localhost",80));
+            server.socket().bind( new java.net.InetSocketAddress("localhost",80), 5000);
             
             selector = Selector.open();
             server.register(selector, SelectionKey.OP_ACCEPT);
@@ -70,6 +70,8 @@ public class HTTP_Server {
             * sets the event status as finished 
             */ 
            handle();
+           
+           clean();
     
         } 
 
@@ -99,7 +101,7 @@ public class HTTP_Server {
                         SocketChannel client = server.accept();
                         client.configureBlocking(false);
                         client.register(selector, SelectionKey.OP_READ);
-                        System.out.println("A new client has been accepted.");
+                        //System.out.println("A new client has been accepted.");
                     }
                     if(key.isReadable() && key.isValid()){
                         
@@ -117,13 +119,13 @@ public class HTTP_Server {
                              * by the handler and a response generated. The client is allocated
                              * to the response and the response can be sent */
                             
-                            System.out.println("Incoming data from client: ");
+                            //System.out.println("Incoming data from client: ");
                             
                             buffer.flip();
                             Charset charset=Charset.forName("ISO-8859-1");
                             CharsetDecoder decoder = charset.newDecoder();
                             CharBuffer charBuffer = decoder.decode(buffer);
-                            System.out.println(charBuffer.toString());
+                            //System.out.println(charBuffer.toString());
                             
                             if ( checkRequest(charBuffer.toString()) ){
                             
@@ -136,12 +138,12 @@ public class HTTP_Server {
                                     System.out.println("NullPointerException thrown while adding event to LinkedList: " + e);
                                 }
                             }
-                            else System.out.println("Invalid request");
+                            //else System.out.println("Invalid request");
                                                         
                         }
                         else {
                             /* if a read on the socket goes wrong (-1), close the connection */
-                            System.out.println("A connection has been closed.");
+                            //System.out.println("A connection has been closed.");
                             client.close();
                         }
 
@@ -179,7 +181,7 @@ public class HTTP_Server {
                     
                     if (request.getStatusCode() == 200) {
                         try{
-                            System.out.println("Opening the html file...");
+                            //System.out.println("Opening the html file...");
                             request.fileChannel = AsynchronousFileChannel.open( request.getPath() , StandardOpenOption.READ );
                             request.buffer = ByteBuffer.allocate( (int)request.fileChannel.size() );
                             request.operation = request.fileChannel.read( request.buffer , 0 );
@@ -197,7 +199,7 @@ public class HTTP_Server {
                     }
                     else {
                         // the request wasn't successfull - won't open anything
-                        System.out.println("Could not find the file; no reading to be made.");
+                        //System.out.println("Could not find the file; no reading to be made.");
                         request.buffer = null;
                         request.fileChannel = null;
                         request.operation = null;
@@ -208,7 +210,7 @@ public class HTTP_Server {
                     
                 case WAITING:
                     if (  request.operation.isDone() ) {                     
-                        System.out.println("File was read. Creating a response...");
+                        //System.out.println("File was read. Creating a response...");
                         Get_Response response = new Get_Response(request.getID(), request.getOrigin(), request.getStatusCode());
                         response.setDataToSend( request.buffer );
                         response.buildHeader();
@@ -219,12 +221,11 @@ public class HTTP_Server {
                     break;
                     
                 case CONCLUDED:
-                    System.out.println("This request has been processed and response has been created. Removing from the list...");
-                    Get_Request_FIFO.remove( index ); 
+                    //System.out.println("This request has been processed and response has been created. Marked for removal.");
                     break;
                     
                 case FAIL: 
-                    System.out.println("This request has failed somehow!");
+                    //System.out.println("This request has failed somehow!");
                     request.setStatusCode(404);
                     Get_Response response = new Get_Response(request.getID(), request.getOrigin(), request.getStatusCode());
                     response.buildHeader();
@@ -238,12 +239,12 @@ public class HTTP_Server {
         }
         
         index = 0;
+        
         // now iterate the GET_Response list
         for(Get_Response response : Get_Response_FIFO) {
             
             try {
                 response.getOrigin().write( response.toSend );
-                Get_Response_FIFO.remove( index );
             }
             catch( IOException e){
                 System.out.println("Failed to send a response.");
@@ -253,6 +254,20 @@ public class HTTP_Server {
         }
         
     };
+    
+    private static void clean() {
+        
+        Iterator<Get_Request> itr = Get_Request_FIFO.iterator();
+        
+        while (itr.hasNext()) {
+            if (itr.next().getState() == Get_Request.status.CONCLUDED ) {
+                itr.remove();
+            } 
+        }
+        
+        Get_Response_FIFO.clear();
+        
+    }
     
     private static Boolean checkRequest(String request){
         
