@@ -53,9 +53,7 @@ public class Get_Request{
         //Request's text processing
         data = data.substring(data.indexOf(' ')+1, data.indexOf('\r'));
         protocol = data.substring(data.indexOf(' ')+1);
-        
-        
-        //Get html page location on the server
+
         try{
             path = Paths.get(System.getProperty("user.dir"),Paths.get(data.substring(0, data.indexOf(' '))).toString());
             //System.out.println("Created a new request for the html file on path: " + path.toString());
