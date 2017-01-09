@@ -58,13 +58,13 @@ public class Get_Request{
         //Get html page location on the server
         try{
             path = Paths.get(System.getProperty("user.dir"),Paths.get(data.substring(0, data.indexOf(' '))).toString());
-            System.out.println("Created a new request for the html file on path: " + path.toString());
+            //System.out.println("Created a new request for the html file on path: " + path.toString());
             statusCode = 200;  //Success
             
         }
         catch (InvalidPathException e){
             
-            System.out.println("Page could not be found.\n" + e);
+            //System.out.println("Page could not be found.\n" + e);
             statusCode = 404;  //Client Error - Page not found
             
         }

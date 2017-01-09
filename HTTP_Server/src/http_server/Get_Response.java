@@ -91,7 +91,7 @@ public class Get_Response {
                         "\r\n" +
                         content;
                 
-                System.out.println("\n" + header + "\n");
+                //System.out.println("\n" + header + "\n");
                 toSend = ByteBuffer.wrap( header.getBytes() );
                 
                 
@@ -107,7 +107,7 @@ public class Get_Response {
                         "\nServer: " + InetAddress.getLocalHost().getHostName() +
                         "\nConnection: Close";
                 
-                System.out.println("\n" + header + "\n");
+                //System.out.println("\n" + header + "\n");
                 toSend = ByteBuffer.wrap( header.getBytes() );
             }
             catch(UnknownHostException e) {}
