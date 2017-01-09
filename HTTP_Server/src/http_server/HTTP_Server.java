@@ -31,7 +31,7 @@ public class HTTP_Server {
              */
             server = ServerSocketChannel.open();
             server.configureBlocking(false);
-            server.socket().bind( new java.net.InetSocketAddress("localhost",80), 5000);
+            server.socket().bind( new java.net.InetSocketAddress("localhost" , 80));
             
             selector = Selector.open();
             server.register(selector, SelectionKey.OP_ACCEPT);
@@ -193,7 +193,7 @@ public class HTTP_Server {
                             System.exit(-1);
                         }
                         catch(IOException e) {
-                            System.out.println("IOException while reading the file on PATH " + request.getPath().toString() + ": " + e);
+                            System.out.println("IOException while reading the file: " + e);
                             request.setState(Get_Request.status.FAIL);
                         } 
                     }
